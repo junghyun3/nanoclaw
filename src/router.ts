@@ -9,10 +9,17 @@ export function escapeXml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+function toLocalISOString(isoUtc: string): string {
+  const d = new Date(isoUtc);
+  if (isNaN(d.getTime())) return isoUtc;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 export function formatMessages(messages: NewMessage[]): string {
   const lines = messages.map(
     (m) =>
-      `<message sender="${escapeXml(m.sender_name)}" time="${m.timestamp}">${escapeXml(m.content)}</message>`,
+      `<message sender="${escapeXml(m.sender_name)}" time="${toLocalISOString(m.timestamp)}">${escapeXml(m.content)}</message>`,
   );
   return `<messages>\n${lines.join('\n')}\n</messages>`;
 }
