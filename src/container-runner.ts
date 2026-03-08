@@ -4,6 +4,7 @@
  */
 import { ChildProcess, exec, spawn } from 'child_process';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
 import {
@@ -111,6 +112,10 @@ function buildVolumeMounts(
     }
   }
 
+  // GWS (Google Workspace CLI) integration — auto-detected via auth config
+  const gwsConfigPath = path.join(os.homedir(), '.config', 'gws');
+  const gwsAvailable = fs.existsSync(gwsConfigPath);
+
   // Per-group Claude sessions directory (isolated from other groups)
   // Each group gets their own .claude/ to prevent cross-group session access
   const groupSessionsDir = path.join(
@@ -121,6 +126,7 @@ function buildVolumeMounts(
   );
   fs.mkdirSync(groupSessionsDir, { recursive: true });
   const settingsFile = path.join(groupSessionsDir, 'settings.json');
+
   if (!fs.existsSync(settingsFile)) {
     fs.writeFileSync(
       settingsFile,
@@ -196,6 +202,11 @@ function buildVolumeMounts(
     containerPath: '/app/src',
     readonly: false,
   });
+
+  // GWS mount: auth config (writable to allow token refresh)
+  if (gwsAvailable) {
+    mounts.push({ hostPath: gwsConfigPath, containerPath: '/home/node/.config/gws', readonly: false });
+  }
 
   // Additional mounts validated against external allowlist (tamper-proof from containers)
   if (group.containerConfig?.additionalMounts) {
