@@ -205,7 +205,11 @@ function buildVolumeMounts(
 
   // GWS mount: auth config (writable to allow token refresh)
   if (gwsAvailable) {
-    mounts.push({ hostPath: gwsConfigPath, containerPath: '/home/node/.config/gws', readonly: false });
+    mounts.push({
+      hostPath: gwsConfigPath,
+      containerPath: '/home/node/.config/gws',
+      readonly: false,
+    });
   }
 
   // Additional mounts validated against external allowlist (tamper-proof from containers)
